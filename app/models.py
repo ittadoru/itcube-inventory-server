@@ -41,6 +41,16 @@ class Room(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
+class ItemType(Base):
+    __tablename__ = "item_types"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(128), unique=True, index=True, nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+
 class Item(Base):
     __tablename__ = "items"
 

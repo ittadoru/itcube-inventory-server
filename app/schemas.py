@@ -55,6 +55,21 @@ class RoomOut(RoomBase):
     id: int
 
 
+class ItemTypeCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=128)
+    description: str | None = None
+
+
+class ItemTypeOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    description: str | None
+    is_active: bool
+    created_at: datetime
+
+
 class ItemBase(BaseModel):
     inventory_number: str = Field(min_length=1, max_length=128)
     item_type: str = Field(min_length=1, max_length=128)

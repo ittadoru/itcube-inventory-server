@@ -1,80 +1,236 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-bs-theme="dark">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>IT Cube Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
-    body { font-family: Arial, sans-serif; margin: 24px; }
-    table { border-collapse: collapse; width: 100%; margin-bottom: 24px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background: #f3f3f3; }
-    .row-form { display: flex; gap: 8px; align-items: center; }
-    .api-key { font-size: 24px; font-weight: 700; letter-spacing: 1px; }
+    :root {
+      --line: rgba(255, 255, 255, 0.08);
+      --panel: rgba(16, 23, 37, 0.88);
+      --primary-soft: rgba(46, 168, 255, 0.2);
+      --ok-soft: rgba(0, 214, 153, 0.2);
+    }
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 10% 0, rgba(46, 168, 255, 0.2), transparent 25%),
+        radial-gradient(circle at 90% 100%, rgba(0, 214, 153, 0.17), transparent 25%),
+        linear-gradient(120deg, #090e18 0%, #10182b 45%, #0a111f 100%);
+      color: #e9eef8;
+      font-family: "Segoe UI", "Inter", sans-serif;
+    }
+    .glass {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.34);
+      backdrop-filter: blur(6px);
+      animation: fadeUp .45s ease both;
+    }
+    .api-key-box {
+      font-size: clamp(1.15rem, 2vw, 1.7rem);
+      font-weight: 700;
+      letter-spacing: .08em;
+      padding: .8rem 1rem;
+      border-radius: 12px;
+      border: 1px dashed var(--line);
+      background: rgba(5, 10, 18, 0.5);
+      word-break: break-all;
+    }
+    .stat-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: .9rem 1rem;
+      background: rgba(8, 12, 22, 0.45);
+    }
+    .stat-caption { color: #9db0cd; font-size: .84rem; }
+    .stat-value { font-size: 1.35rem; font-weight: 700; }
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: .8rem;
+    }
+    .table-wrap {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .table {
+      margin: 0;
+      --bs-table-bg: transparent;
+      --bs-table-border-color: rgba(255,255,255,.07);
+      --bs-table-hover-bg: rgba(46,168,255,.08);
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      font-size: .76rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: .32rem .62rem;
+      color: #abc0dd;
+      background: rgba(12, 18, 31, .6);
+    }
+    .tag-primary { background: var(--primary-soft); color: #bde4ff; border-color: rgba(46,168,255,.4); }
+    .tag-ok { background: var(--ok-soft); color: #c5ffe9; border-color: rgba(0,214,153,.38); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .truncate-hash {
+      max-width: 420px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      display: inline-block;
+      vertical-align: bottom;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
-  <h1>Панель администратора</h1>
-  <p>Текущий API-ключ (обновляется каждые 60 сек):</p>
-  <div class="api-key">{{ api_key }}</div>
+  <main class="container py-4 py-lg-5">
+    <div class="glass p-4 p-lg-5 mb-4">
+      <div class="d-flex flex-wrap gap-3 justify-content-between align-items-start mb-3">
+        <div>
+          <div class="pill tag-primary mb-2">IT Cube Inventory · Admin Panel</div>
+          <h1 class="h3 mb-1">Управление доступом</h1>
+          <p class="text-secondary mb-0">Пользователи, устройства и временный API-ключ.</p>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="/admin/logout" class="btn btn-outline-light btn-sm">Выйти</a>
+        </div>
+      </div>
 
-  <h2>Пользователи</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Имя</th>
-        <th>Создан</th>
-        <th>Активен</th>
-        <th>Действия</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for user in users %}
-      <tr>
-        <td>{{ user.id }}</td>
-        <td>{{ user.username }}</td>
-        <td>{{ user.created_at }}</td>
-        <td>{{ user.is_active }}</td>
-        <td>
-          <form class="row-form" method="post" action="/admin/users/{{ user.id }}/rename">
-            <input name="username" value="{{ user.username }}" pattern="[A-Za-z]{3,32}" required />
-            <button type="submit">Переименовать</button>
-          </form>
-          <form method="post" action="/admin/users/{{ user.id }}/delete" onsubmit="return confirm('Удалить пользователя?');">
-            <button type="submit">Удалить</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      <div class="row g-3 align-items-stretch">
+        <div class="col-lg-8">
+          <div class="stat-card h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="stat-caption">Текущий API-ключ (обновляется каждые 60 секунд)</div>
+              <button id="copy-key" type="button" class="btn btn-sm btn-outline-info">Копировать</button>
+            </div>
+            <div id="api-key" class="api-key-box mono">{{ api_key }}</div>
+          </div>
+        </div>
+        <div class="col-lg-2 col-sm-6">
+          <div class="stat-card h-100">
+            <div class="stat-caption">Пользователи</div>
+            <div class="stat-value">{{ users|length }}</div>
+          </div>
+        </div>
+        <div class="col-lg-2 col-sm-6">
+          <div class="stat-card h-100">
+            <div class="stat-caption">Устройства</div>
+            <div class="stat-value">{{ devices|length }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  <h2>Устройства</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>User ID</th>
-        <th>Имя пользователя</th>
-        <th>Hash</th>
-        <th>Создан</th>
-        <th>Последняя активность</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for device in devices %}
-      <tr>
-        <td>{{ device.id }}</td>
-        <td>{{ device.user_id }}</td>
-        <td>{{ users_by_id[device.user_id].username if device.user_id in users_by_id else '-' }}</td>
-        <td>{{ device.device_hash }}</td>
-        <td>{{ device.created_at }}</td>
-        <td>{{ device.last_seen_at }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+    <div class="glass p-4 p-lg-5 mb-4">
+      <div class="section-title">
+        <h2 class="h5 mb-0">Пользователи</h2>
+        <span class="pill tag-ok">Можно переименовать только латиницей</span>
+      </div>
+      <div class="table-wrap">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-dark">
+              <tr>
+                <th>ID</th>
+                <th>Имя</th>
+                <th>Создан</th>
+                <th>Активен</th>
+                <th style="width: 360px;">Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in users %}
+              <tr>
+                <td class="mono">{{ user.id }}</td>
+                <td><span class="mono">{{ user.username }}</span></td>
+                <td class="text-secondary">{{ user.created_at }}</td>
+                <td>
+                  {% if user.is_active %}
+                    <span class="badge text-bg-success">Да</span>
+                  {% else %}
+                    <span class="badge text-bg-secondary">Нет</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="d-flex flex-wrap gap-2">
+                    <form class="d-flex gap-2 flex-grow-1" method="post" action="/admin/users/{{ user.id }}/rename">
+                      <input class="form-control form-control-sm" name="username" value="{{ user.username }}" pattern="[A-Za-z]{3,32}" required />
+                      <button type="submit" class="btn btn-sm btn-outline-info">Переименовать</button>
+                    </form>
+                    <form method="post" action="/admin/users/{{ user.id }}/delete" onsubmit="return confirm('Удалить пользователя?');">
+                      <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
-  <p><a href="/admin/logout">Выйти</a></p>
+    <div class="glass p-4 p-lg-5">
+      <div class="section-title">
+        <h2 class="h5 mb-0">Доверенные устройства</h2>
+        <span class="pill">История авторизованных клиентов</span>
+      </div>
+      <div class="table-wrap">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-dark">
+              <tr>
+                <th>ID</th>
+                <th>User ID</th>
+                <th>Пользователь</th>
+                <th>Hash</th>
+                <th>Создан</th>
+                <th>Последняя активность</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for device in devices %}
+              <tr>
+                <td class="mono">{{ device.id }}</td>
+                <td class="mono">{{ device.user_id }}</td>
+                <td>{{ users_by_id[device.user_id].username if device.user_id in users_by_id else '-' }}</td>
+                <td><span class="mono truncate-hash" title="{{ device.device_hash }}">{{ device.device_hash }}</span></td>
+                <td class="text-secondary">{{ device.created_at }}</td>
+                <td class="text-secondary">{{ device.last_seen_at }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const copyBtn = document.getElementById('copy-key');
+    const keyEl = document.getElementById('api-key');
+    if (copyBtn && keyEl) {
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(keyEl.textContent.trim());
+          copyBtn.textContent = 'Скопировано';
+          setTimeout(() => { copyBtn.textContent = 'Копировать'; }, 1300);
+        } catch (_) {
+          copyBtn.textContent = 'Ошибка';
+          setTimeout(() => { copyBtn.textContent = 'Копировать'; }, 1300);
+        }
+      });
+    }
+  </script>
 </body>
 </html>
