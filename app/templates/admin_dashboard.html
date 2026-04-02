@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>IT Cube Admin</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 24px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f3f3f3; }
+    .row-form { display: flex; gap: 8px; align-items: center; }
+    .api-key { font-size: 24px; font-weight: 700; letter-spacing: 1px; }
+  </style>
+</head>
+<body>
+  <h1>Панель администратора</h1>
+  <p>Текущий API-ключ (обновляется каждые 60 сек):</p>
+  <div class="api-key">{{ api_key }}</div>
+
+  <h2>Пользователи</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Имя</th>
+        <th>Создан</th>
+        <th>Активен</th>
+        <th>Действия</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td>{{ user.id }}</td>
+        <td>{{ user.username }}</td>
+        <td>{{ user.created_at }}</td>
+        <td>{{ user.is_active }}</td>
+        <td>
+          <form class="row-form" method="post" action="/admin/users/{{ user.id }}/rename">
+            <input name="username" value="{{ user.username }}" pattern="[A-Za-z]{3,32}" required />
+            <button type="submit">Переименовать</button>
+          </form>
+          <form method="post" action="/admin/users/{{ user.id }}/delete" onsubmit="return confirm('Удалить пользователя?');">
+            <button type="submit">Удалить</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Устройства</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>User ID</th>
+        <th>Имя пользователя</th>
+        <th>Hash</th>
+        <th>Создан</th>
+        <th>Последняя активность</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for device in devices %}
+      <tr>
+        <td>{{ device.id }}</td>
+        <td>{{ device.user_id }}</td>
+        <td>{{ users_by_id[device.user_id].username if device.user_id in users_by_id else '-' }}</td>
+        <td>{{ device.device_hash }}</td>
+        <td>{{ device.created_at }}</td>
+        <td>{{ device.last_seen_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <p><a href="/admin/logout">Выйти</a></p>
+</body>
+</html>

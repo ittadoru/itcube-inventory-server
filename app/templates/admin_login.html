@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>IT Cube Admin Login</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 460px; margin: 80px auto; }
+    form { display: grid; gap: 12px; }
+    input, button { padding: 10px; font-size: 16px; }
+    .error { color: #b11; }
+  </style>
+</head>
+<body>
+  <h1>Вход администратора</h1>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <form method="post" action="/admin/login">
+    <input type="password" name="password" placeholder="Пароль" required />
+    <button type="submit">Войти</button>
+  </form>
+</body>
+</html>
