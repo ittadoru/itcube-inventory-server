@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import get_settings
 from .database import Base, engine
-from .routers import admin, auth, items, rooms
+from .routers import admin, auth, item_types, items, rooms
 
 settings = get_settings()
 app = FastAPI(title=settings.app_name)
@@ -34,5 +34,6 @@ def root() -> dict[str, str]:
 
 app.include_router(auth.router, prefix="/api")
 app.include_router(rooms.router, prefix="/api")
+app.include_router(item_types.router, prefix="/api")
 app.include_router(items.router, prefix="/api")
 app.include_router(admin.router)

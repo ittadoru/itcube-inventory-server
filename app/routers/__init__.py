@@ -1,3 +1,3 @@
-from . import admin, auth, items, rooms
+from . import admin, auth, item_types, items, rooms
 
-__all__ = ["admin", "auth", "items", "rooms"]
+__all__ = ["admin", "auth", "item_types", "items", "rooms"]
